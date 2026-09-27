@@ -1,12 +1,15 @@
 # 🧠 TripDownMemoryLane — Multimodal AI & Quiz Backend Service
 
+[![CI Pipeline](https://github.com/TripDownMemoryLane/backend/actions/workflows/ci.yml/badge.svg)](https://github.com/TripDownMemoryLane/backend/actions/workflows/ci.yml)
 [![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?logo=node.js&logoColor=white)](#technologies)
-[![Express.js](https://img.shields.io/badge/Express.js-Framework-000000?logo=express&logoColor=white)](#technologies)
+[![Express.js](https://img.shields.io/badge/Express.js-v5.x-000000?logo=express&logoColor=white)](#technologies)
+[![Jest Testing](https://img.shields.io/badge/Tested%20with-Jest%20%26%20Supertest-C21325?logo=jest&logoColor=white)](#testing--quality-assurance)
 [![REST API](https://img.shields.io/badge/Architecture-RESTful%20API-blue.svg)](#system-architecture--external-services)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-An asynchronous AI-driven backend microservice built with **Node.js** and **Express**. The service processes client-submitted image payloads (Base64), orchestrates computer vision analysis, performs generative language modeling for adaptive story and quiz generation, and synthesizes audio prompts via text-to-speech pipelines.
+An asynchronous AI-driven backend microservice built with **Node.js** and **Express 5**. The service ingests client-submitted image payloads (Base64), orchestrates computer vision analysis, performs generative language modeling for adaptive story and quiz generation, and synthesizes audio prompts via text-to-speech pipelines.
 
+---
 
 ## 🔗 Project Ecosystem & Links
 
@@ -14,16 +17,19 @@ An asynchronous AI-driven backend microservice built with **Node.js** and **Expr
 - **Course Submission Monorepo:** [TripDownMemoryLane/TripDownMemoryLane-final](https://github.com/TripDownMemoryLane/TripDownMemoryLane-final)
 - **API Specification:** [`API.md`](./API.md) (Request/response schemas, payload structures, and status codes)
 
+---
 
 ## 👨‍💻 Engineering Ownership & Scope
 
-As the **sole backend engineer** for this system, my core technical contributions include:
+As the **sole backend engineer** for this microservice, my core technical contributions include:
 
 - **AI Pipeline Integration (`aiService.js`):** Engineered asynchronous pipelines chaining Google Cloud Vision feature extraction directly into Hugging Face generative prompts for contextual quiz generation.
 - **Audio Processing Engine (`audioService.js`):** Built server-side synthesis pipelines converting dynamic text to Base64-encoded audio streams via Google Cloud TTS.
-- **Gateway & Middleware Design (`server.js`):** Implemented Express routing, payload parsing, CORS configurations for decoupled React integration, and structured HTTP error handling.
+- **Gateway & Middleware Design (`server.js`):** Configured Express 5 routing, high-capacity Base64 payload limits (50MB), CORS policies for decoupled React integration, and structured HTTP error handling.
+- **Verification & CI/CD (`tests/`, `.github/`):** Authored integration tests using Jest and Supertest with mock service boundaries to achieve deterministic, zero-cost CI execution via GitHub Actions.
 - **Contract Definition:** Documented standardized RESTful API contracts in `API.md` for seamless collaboration with the frontend engineering team.
 
+---
 
 ## 🏗️ System Architecture & External Services
 
@@ -100,13 +106,14 @@ npm install
 
 
 3. **Configure Environment Variables:**
-Initialize your local environment file using the provided template:
+
+Create a `.env` file in the root directory:
 ```bash
 cp .env.example .env
 ```
 
 
-Add your service keys to `.env`:
+Configure your access keys:
 ```env
 PORT=4001
 HF_API_KEY=your_huggingface_access_token
@@ -126,8 +133,25 @@ GOOGLE_API_KEY=your_google_cloud_api_key
 npm start
 ```
 
-
 The backend API will be live at `http://localhost:4001`.
+
+
+## 🧪 Testing & Quality Assurance
+
+This repository includes automated integration tests using **Jest** and **Supertest**. External cloud APIs are mocked during test execution to ensure fast, isolated, and deterministic test runs without incurring cloud billing.
+
+* **Run all integration tests:**
+```bash
+npm test
+```
+
+* **Run static syntax checks:**
+```bash
+npm run lint
+```
+
+All commits pushed to `main` are automatically verified across Node.js 18.x and 20.x runtimes via the GitHub Actions CI pipeline.
+
 
 ## 📄 License
 
