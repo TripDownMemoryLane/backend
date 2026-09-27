@@ -1,4 +1,3 @@
-// server.js (優化版)
 require('dotenv').config(); 
 
 const express = require('express');
@@ -186,6 +185,11 @@ app.post('/generate-quiz', async (req, res) => {
 // ----------------------------------------------------
 // 啟動伺服器
 // ----------------------------------------------------
-app.listen(port, () => {
-    console.log(`伺服器已啟動，正在監聽 http://localhost:${port}`);
-});
+// Export app and only listen when not testing
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(port, () => {
+        console.log(`伺服器已啟動，正在監聽 http://localhost:${port}`);
+    });
+}
+
+module.exports = app;
