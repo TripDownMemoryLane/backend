@@ -13,7 +13,6 @@ An asynchronous AI-driven backend microservice built with **Node.js** and **Expr
 - **Frontend Application (Client):** [TripDownMemoryLane/memoryLaneFrontend](https://github.com/TripDownMemoryLane/memoryLaneFrontend) (React client interface built by team collaborators)
 - **Course Submission Monorepo:** [TripDownMemoryLane/TripDownMemoryLane-final](https://github.com/TripDownMemoryLane/TripDownMemoryLane-final)
 - **API Specification:** [`API.md`](./API.md) (Request/response schemas, payload structures, and status codes)
-- **Engineering Log:** [`progress.md`](./progress.md) (Milestone and sprint tracking)
 
 
 ## 👨‍💻 Engineering Ownership & Scope
