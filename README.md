@@ -1,76 +1,136 @@
-# 🚀 Quiz API 專案 (Express Backend)
+# 🧠 TripDownMemoryLane — Multimodal AI & Quiz Backend Service
 
-歡迎使用 **Quiz API** 專案！這是一個基於 **Express** 的後端伺服器，專門設計用於接收 Base64 編碼的圖片，透過 AI 進行**故事生成**及**測驗題目生成**（生成題目也將**轉換為語音**後回傳）。
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?logo=node.js&logoColor=white)](#technologies)
+[![Express.js](https://img.shields.io/badge/Express.js-Framework-000000?logo=express&logoColor=white)](#technologies)
+[![REST API](https://img.shields.io/badge/Architecture-RESTful%20API-blue.svg)](#system-architecture--external-services)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
-
-## 🤖 使用的 AI 技術與額度
-
-| 服務 | 用途 | 
-| :--- | :--- | 
-| **Google Vision API** | 圖片分析處理。 | 
-| **Google Cloud Text-to-Speech (TTS)** | 將生成的題目文字轉換為 Base64 音頻。 | 
-| **Hugging Face Inference API** | 文字生成 (故事/題目) 及圖片分析輔助。 | 
+An asynchronous AI-driven backend microservice built with **Node.js** and **Express**. The service processes client-submitted image payloads (Base64), orchestrates computer vision analysis, performs generative language modeling for adaptive story and quiz generation, and synthesizes audio prompts via text-to-speech pipelines.
 
 
-- 由於是免費版，將會有次數限制，上限大約為（Google Vision & Google Cloud 1,000/月; Hugging Face 130/月）
+## 🔗 Project Ecosystem & Links
 
-## ⚙️ 埠號（Port）設定要求
+- **Frontend Application (Client):** [TripDownMemoryLane/memoryLaneFrontend](https://github.com/TripDownMemoryLane/memoryLaneFrontend) (React client interface built by team collaborators)
+- **Course Submission Monorepo:** [TripDownMemoryLane/TripDownMemoryLane-final](https://github.com/TripDownMemoryLane/TripDownMemoryLane-final)
+- **API Specification:** [`API.md`](./API.md) (Request/response schemas, payload structures, and status codes)
+- **Engineering Log:** [`progress.md`](./progress.md) (Milestone and sprint tracking)
 
-為確保前後端服務能夠正常通訊與運作，請**嚴格遵守**以下埠號設定：
 
-> * **前端 (REACT)：** `4000`
-> * **後端 (API)：** `4001`
+## 👨‍💻 Engineering Ownership & Scope
 
----
+As the **sole backend engineer** for this system, my core technical contributions include:
 
-## 🛠️ 快速開始：啟動後端 API 步驟
+- **AI Pipeline Integration (`aiService.js`):** Engineered asynchronous pipelines chaining Google Cloud Vision feature extraction directly into Hugging Face generative prompts for contextual quiz generation.
+- **Audio Processing Engine (`audioService.js`):** Built server-side synthesis pipelines converting dynamic text to Base64-encoded audio streams via Google Cloud TTS.
+- **Gateway & Middleware Design (`server.js`):** Implemented Express routing, payload parsing, CORS configurations for decoupled React integration, and structured HTTP error handling.
+- **Contract Definition:** Documented standardized RESTful API contracts in `API.md` for seamless collaboration with the frontend engineering team.
 
-### 1. 📂 取得專案與安裝依賴
 
-#### 1.1. 克隆專案
-```bash
-git clone https://github.com/TripDownMemoryLane/quiz-api.git
-cd quiz-api
+## 🏗️ System Architecture & External Services
+
+The service acts as an orchestration gateway aggregating three external cloud intelligence providers:
+
+| Service / Platform | Role in Architecture | Implementation Details |
+| :--- | :--- | :--- |
+| **Google Cloud Vision API** | Visual Perception | Extracts semantic features, object labels, and contextual cues from uploaded images. |
+| **Hugging Face Inference API** | Generative Reasoning | Generates narrative story arcs and multiple-choice quiz questions based on visual context. |
+| **Google Cloud Text-to-Speech** | Auditory Feedback | Synthesizes quiz questions into Base64 audio streams for interactive voice accessibility. |
+
+```text
+[ React Frontend (Port 4000) ]
+              │
+      HTTP / Base64 Payload
+              │
+              ▼
+[ Express Backend Gateway (Port 4001) ]
+  ├── 1. Google Cloud Vision API    → Feature & Entity Extraction
+  ├── 2. Hugging Face Inference API → Contextual Story & Question Generation
+  └── 3. Google Cloud TTS           → Dynamic Audio Synthesis
+              │
+       JSON + Audio Payload
+              │
+              ▼
+[ Client Application UI/Playback ]
 ```
 
-#### 1.2. 安裝依賴套件
+## ⚙️ Network & Port Configuration
+
+To support Cross-Origin Resource Sharing (CORS) between decoupled repositories during local integration:
+
+* **Frontend Client (React):** `http://localhost:4000`
+* **Backend Service (Express):** `http://localhost:4001`
+
+---
+
+## 📂 Repository Layout
+
+```text
+backend/
+├── .env.example          # Environment template for local secrets
+├── .gitignore
+├── aiService.js          # Google Vision & Hugging Face pipeline logic
+├── API.md                # Comprehensive endpoint specifications
+├── audioService.js       # Google Cloud TTS synthesis service
+├── package-lock.json
+├── package.json
+├── progress.md           # Engineering log and sprint tracking
+└── server.js             # Application bootstrap, routing & server entry point
+```
+
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* **Node.js:** `v18.x` or higher
+* **npm:** `v9.x` or higher
+* Active API credentials for **Hugging Face** and **Google Cloud**
+
+### Installation
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/TripDownMemoryLane/backend.git
+cd backend
+```
+
+
+2. **Install project dependencies:**
 ```bash
 npm install
 ```
 
 
-### 2. 🔑 設定 API 密鑰 (.env 檔案)
-#### 2.1. 獲取 Hugging Face API Key
-- **註冊並獲取 Key：** 請到 [Hugging Face 網站](https://huggingface.co/settings/tokens) 註冊帳號，並在設定 "Access Tokens" 頁面生成自己的 **API Token**。
-
-#### 2.2. 獲取 Google Cloud API Key
-1. **註冊 Google Cloud**： 前往 [Google Cloud 網站](https://cloud.google.com/?hl=en) 註冊帳號。
-2. **建立專案**： 前往 [專案](https://console.cloud.google.com/)「新增專案」並建立。
-3. **啟用 Vision API**： 進入新專案，到 [Vision API](https://console.cloud.google.com/apis/library/vision.googleapis.com) 頁面，點擊 「啟用 Enable」。
-4. **啟用 Text-to-Speech API**： 進入新專案，到 [TTS API](https://console.cloud.google.com/apis/library/texttospeech.googleapis.com) 頁面，點擊 「啟用 Enable」。
-5. **建立金鑰**： 前往 [憑證頁面](https://console.cloud.google.com/apis/credentials) $\rightarrow$ 「建立憑證」 $\rightarrow$ 「API 金鑰」，並複製生成的 Key。
-
-#### 2.3. .env 檔案內容
-
-在 quiz-api 資料夾內創建 .env 文件，並填入密鑰：
-
-```.env
-HF_API_KEY="你的HuggingFace_Access_Token"
-GOOGLE_API_KEY="你的Google Vision Key"
+3. **Configure Environment Variables:**
+Initialize your local environment file using the provided template:
+```bash
+cp .env.example .env
 ```
 
 
-### 3. 🚀 啟動伺服器
+Add your service keys to `.env`:
+```env
+PORT=4001
+HF_API_KEY=your_huggingface_access_token
+GOOGLE_API_KEY=your_google_cloud_api_key
+```
+
+
+> **Credential References:**
+> * **Hugging Face Token:** Obtain via [Hugging Face Settings → Tokens](https://huggingface.co/settings/tokens?utm_source=gemini) (Read access required).
+> * **Google Cloud Key:** Generate an API key from the [Google Cloud Console](https://console.cloud.google.com/?utm_source=gemini) with **Cloud Vision API** and **Cloud Text-to-Speech API** enabled.
+> 
+> 
+
+
+4. **Start the Development Server:**
 ```bash
 npm start
 ```
 
-- 伺服器將運行在：http://localhost:4001
 
+The backend API will be live at `http://localhost:4001`.
 
-## 📞 其他 markdown
-- **API.md** : 解釋每個 API 的輸入輸出值及怎麽使用
-- **progress.md** ：專案進度追蹤
+## 📄 License
 
-   
+This project is distributed under the [MIT License](LICENSE).
