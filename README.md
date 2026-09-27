@@ -73,7 +73,6 @@ backend/
 ├── audioService.js       # Google Cloud TTS synthesis service
 ├── package-lock.json
 ├── package.json
-├── progress.md           # Engineering log and sprint tracking
 └── server.js             # Application bootstrap, routing & server entry point
 ```
 

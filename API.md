@@ -1,19 +1,31 @@
-# 📞 Quiz API 接口文件
+# 📡 Quiz API Specification
 
-本文件詳細說明了 `quiz-api` 後端伺服器提供的所有 API 接口、預期輸入和成功回應格式。
+RESTful API specification for the `quiz-api` microservice. This service processes visual payloads, orchestrates generative AI storytelling, and produces text-to-speech audio streams.
+
+- **Base URL:** `http://localhost:4001`
+- **Default Protocol:** HTTP/1.1
+- **Content-Type:** `application/json`
+
+
+## Endpoint Summary
+
+| Method | Endpoint | Description | Status Codes |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/` | Health check & service readiness probe | `200` |
+| `POST` | `/generate-story` | Extracts image features and synthesizes narrative stories | `200`, `400`, `502` |
+| `POST` | `/generate-quiz` | Generates quiz items and Base64-encoded audio prompts | `200`, `400`, `502` |
 
 ---
 
-## 1. 🟢 健康檢查 ( GET / )
+## 1. Health Check
 
-用於確認伺服器是否正常運行和前後端連線狀態。
+Verifies server availability and service uptime.
 
-| 屬性 | 說明 |
-| :--- | :--- |
-| **URL** | `GET http://localhost:4001/` |
-| **Header** | 無特殊要求 |
+- **Method:** `GET`
+- **Path:** `/`
+- **Headers:** None
 
-**成功回應 (200 OK):**
+#### Response (`200 OK`)
 ```json
 {
     "message": "接上接上咯 XD XD XD ！🎉🎉🎊🎊",
@@ -21,65 +33,78 @@
 }
 ```
 
+## 2. Story Generation (`/generate-story`)
 
-## 2. 🖼️ 生成家庭故事 ( POST /generate-story )
-此接口接收 Base64 圖片數據，並利用 AI 服務為每張圖片生成一段簡短的家庭故事。
+Consumes Base64-encoded image strings and invokes Google Cloud Vision and Hugging Face pipelines to return contextual narratives.
 
-| 屬性 | 說明 |
-| :--- | :--- |
-| **URL** | `POST http://localhost:4001/generate-story` |
-| **Header** | `Content-Type: application/json` |
+* **Method:** `POST`
+* **Path:** `/generate-story`
+* **Headers:** `Content-Type: application/json`
 
+#### Request Payload
 
-### **請求格式 (Body)**
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `images` | `string[]` | Yes | Array of Base64 Data URL formatted image strings (`data:image/jpeg;base64,...`) |
 
 ```json
 {
-    "images": [
-        "data:image/png;base64,iVBORw0KGgoAAAANSUEUgAA...", // 第一張圖片的 Base64
-        "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...",// 第二張圖片的 Base64
-        "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ..." // 第三張圖片 Base64
-    ]
+  "images": [
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",  // Picture 1
+    "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...",  // Picture 2
+    "data:image/jpeg;base64,/9j/8hHdJBjhingABAQ..."  // Picture 3
+  ]
 }
 ```
 
-**成功回應 (200 OK):**
+#### Success Response (`200 OK`)
 ```json
 {
     "success": true,
     "message": "Successfully generated stories!",
     "stories": [
-        "這是第一張圖片的故事",
-        "這是第二張圖片的故事",
-        "這是第三張圖片的故事"
+        "...", // This is the story generated from Picture 1
+        "...", // This is the story generated form Picture 2
+        "..." // This is the story generated from Picture 3
     ]
 }
 ```
 
-
-
-## 3. 📝 生成測驗與語音 ( POST /generate-quiz )
-此接口接收 AI 或使用者提供的家庭故事陣列，生成測驗題目、選項、答案，並將題目文本轉換為 Base64 編碼的語音 (`audioBase64`)。
-
-| 屬性 | 說明 |
-| :--- | :--- |
-| **URL** | `POST http://localhost:4001/generate-quiz` |
-| **Header** | `Content-Type: application/json` |
-
-
-### **請求格式 (Body)**
+#### Error Response (`400 Bad Request`)
 
 ```json
 {
-    "stories": [
-        "這是第一個故事的文本，用於生成題目。", 
-        "這是第二個故事的文本，用於生成題目。",
-        "這是第三個故事的文本，用於生成題目。"
-    ]
+  "success": false,
+  "error": "Invalid payload: 'images' must be a non-empty array of valid Base64 strings."
 }
 ```
 
-**成功回應 (200 OK):**
+## 3. Quiz & Audio Synthesis (`/generate-quiz`)
+
+Transforms narrative texts into multiple-choice recall assessments and synthesizes spoken audio prompts via Google Cloud Text-to-Speech.
+
+* **Method:** `POST`
+* **Path:** `/generate-quiz`
+* **Headers:** `Content-Type: application/json`
+
+#### Request Payload
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `stories` | `string[]` | Yes | Array of narrative strings to evaluate |
+
+```json
+{
+  "stories": [
+    "...", // Story of picture 1
+    "...", // Story of Picture 2
+    "..."  // Story of Picture 3
+  ]
+}
+
+```
+
+#### Success Response (`200 OK`)
 ```json
 {
     "success": true,
@@ -96,52 +121,67 @@
 }
 ```
 
+#### Error Response (`502 Bad Gateway`)
 
+```json
+{
+  "success": false,
+  "error": "Upstream service timeout: Failed to receive timely response from Hugging Face Inference API."
+}
 
-
-
-## 🖼️ 前端圖片轉 Base64 方法
-
-這展示了前端如何將圖片轉換為 Base64，並依序呼叫兩個 API 接口以獲取帶語音的題目。
-
-
-### 📸 輔助函數：圖片轉換為 Base64
-```javascript
-const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-};
 ```
 
+## Client Integration Example (JavaScript / Browser)
 
-### 🔧使用範例
+Below is an end-to-end client workflow: converting uploaded files to Base64, requesting story generation, and producing quiz payloads.
+
+
 ```javascript
-// 多張圖片轉換
-const handleImageUpload = async (event) => {
-    const files = event.target.files; 
-    
-    // 1. 先轉換所有圖片
-    const base64Array = await Promise.all(
-        Array.from(files).map(file => convertToBase64(file))
+// Utility: Convert a File object to a Base64 Data URL string
+const convertFileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// Complete pipeline call
+const handleImageUploadAndQuizGeneration = async (event) => {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  try {
+    // 1. Convert all selected image files to Base64
+    const base64Images = await Promise.all(
+      Array.from(files).map((file) => convertFileToBase64(file))
     );
-    
-    // 2. 準備發送數據
-    const requestData = base64Array.map(base64 => ({
-        title: base64,
-        description: "這張照片個故事故事敘述敘述敘述，使用者回答"
-    }));
-    
-    // 3. 發送到後端
-    const response = await fetch('http://localhost:4001/generate-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
+
+    // 2. Generate stories from uploaded images
+    const storyResponse = await fetch("http://localhost:4001/generate-story", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ images: base64Images })
     });
-    
-    return await response.json();
+    const storyData = await storyResponse.json();
+
+    if (!storyData.success) {
+      throw new Error(storyData.error || "Failed to generate stories.");
+    }
+
+    // 3. Generate quiz questions and synthesized TTS audio from stories
+    const quizResponse = await fetch("http://localhost:4001/generate-quiz", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stories: storyData.stories })
+    });
+    const quizData = await quizResponse.json();
+
+    return quizData.questions;
+  } catch (error) {
+    console.error("Pipeline execution failed:", error);
+    throw error;
+  }
 };
 ```
